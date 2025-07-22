@@ -104,7 +104,7 @@ export const DateFilter = ({ limited = false }: DateFilterProps) => {
             selected={date}
             onSelect={setDate}
             numberOfMonths={2}
-            disabled={limited ? { before: new Date(today.getTime() - (27 * 24 * 60 * 60 * 1000)) } : undefined}
+            disabled={limited ? { before: new Date(today.getTime() - (99 * 24 * 60 * 60 * 1000)) } : undefined}
           />
           <div className="flex justify-between m-2 gap-2">
             <Button 
