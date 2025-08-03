@@ -112,6 +112,10 @@ export const stringIsNullOrEmpty = (str: string | null | undefined) => {
   return str === null || str === undefined || str === "";
 };
 
+export const getTeamsApiToken = (): string | undefined => {
+  return process.env.GITHUB_TEAMS_TOKEN;
+};
+
 export const validateScope = (str: string | null | undefined) => {
   return str !== "enterprise" && str !== "organization";
 };

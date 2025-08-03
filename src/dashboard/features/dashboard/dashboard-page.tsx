@@ -12,7 +12,7 @@ import { DataProvider } from "./dashboard-state";
 import { TimeFrameToggle } from "./filter/time-frame-toggle";
 import { Header } from "./header";
 import { getCopilotMetrics, IFilter as MetricsFilter } from "@/services/copilot-metrics-service";
-import { getCopilotSeatsManagement, getAllCopilotSeatsTeams, IFilter as SeatServiceFilter } from "@/services/copilot-seat-service";
+import { getCopilotSeatsManagement, getAllGitHubTeams, IFilter as SeatServiceFilter } from "@/services/copilot-seat-service";
 import { cosmosConfiguration } from "@/services/cosmos-db-service";
 
 export interface IProps {
@@ -26,7 +26,7 @@ export default async function Dashboard(props: IProps) {
   const seatsPromise = getCopilotSeatsManagement({
     date: props.searchParams.endDate,
   } as SeatServiceFilter);
-  const teamsPromise = getAllCopilotSeatsTeams({
+  const teamsPromise = getAllGitHubTeams({
     date: props.searchParams.endDate,
   } as SeatServiceFilter);
   const [metrics, seats, teams] = await Promise.all([

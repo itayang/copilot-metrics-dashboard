@@ -1,11 +1,12 @@
 import { formatResponseError, unknownResponseError } from "@/features/common/response-error";
 import { ServerActionResponse } from "@/features/common/server-action-response";
-import { ensureGitHubEnvConfig } from "./env-service";
+import { ensureGitHubEnvConfig, getTeamsApiToken } from "./env-service";
 import { CopilotSeatsData, SeatAssignment, GitHubTeam } from "@/features/common/models";
 import { cosmosClient, cosmosConfiguration } from "./cosmos-db-service";
 import { format } from "date-fns";
 import { SqlQuerySpec } from "@azure/cosmos";
 import { stringIsNullOrEmpty } from "../utils/helpers";
+import { getGitHubTeamsFromApi } from "./github-teams-service";
 
 export interface IFilter {
   date?: Date;
@@ -547,6 +548,52 @@ export const getAllCopilotSeatsTeams = async (
     return {
       status: "OK",
       response: apiResult.response,
+    };
+  } catch (e) {
+    return unknownResponseError(e);
+  }
+};
+
+// New function to get teams from GitHub Teams API
+export const getAllGitHubTeams = async (
+  filter: IFilter
+): Promise<ServerActionResponse<GitHubTeam[]>> => {
+  const env = ensureGitHubEnvConfig();
+
+  if (env.status !== "OK") {
+    return env;
+  }
+
+  const { organization } = env.response;
+  const teamsToken = getTeamsApiToken();
+
+  try {
+    const teamsResult = await getGitHubTeamsFromApi(organization, teamsToken);
+    
+    if (teamsResult.status !== "OK") {
+      return teamsResult;
+    }
+    
+    // Convert GitHubTeamFromApi to GitHubTeam format expected by the UI
+    const convertedTeams: GitHubTeam[] = teamsResult.response.map(team => ({
+      id: team.id,
+      node_id: `T_${team.id}`, // Generate a node_id since it's not in the API response
+      url: `https://api.github.com/teams/${team.id}`,
+      html_url: `https://github.com/orgs/${organization}/teams/${team.slug}`,
+      name: team.name,
+      slug: team.slug,
+      description: team.description || '',
+      privacy: team.privacy,
+      notification_setting: 'notifications_enabled', // Default value
+      permission: team.permission,
+      members_url: `https://api.github.com/teams/${team.id}/members{/member}`,
+      repositories_url: `https://api.github.com/teams/${team.id}/repos`,
+      parent: null, // GitHub Teams API doesn't return parent info by default
+    }));
+    
+    return {
+      status: "OK",
+      response: convertedTeams,
     };
   } catch (e) {
     return unknownResponseError(e);
