@@ -32,6 +32,7 @@ interface IProps extends PropsWithChildren {
 export interface DropdownFilterItem {
   value: string;
   isSelected: boolean;
+  displayName?: string; // Optional display name for UI (different from value)
 }
 
 export type TimeFrame = "daily" | "weekly" | "monthly";
@@ -281,18 +282,29 @@ class DashboardState {
     // Use the fetched teams data instead of extracting from seats
     if (this.teamsData && this.teamsData.length > 0) {
       this.teamsData.forEach((team) => {
-        if (team && team.name) {
-          const teamName = team.name;
-          const index = teams.findIndex((t) => t.value === teamName);
+        if (team && team.slug) {
+          // Use team slug as the value (required by API) but display name for UI
+          const teamSlug = team.slug;
+          const teamName = team.name || team.slug; // Fallback to slug if no name
+          const index = teams.findIndex((t) => t.value === teamSlug);
 
           if (index === -1) {
-            teams.push({ value: teamName, isSelected: false });
+            teams.push({ 
+              value: teamSlug, 
+              displayName: teamName, // Add display name for UI
+              isSelected: false 
+            });
           }
         }
       });
     }
 
-    return teams.sort((a, b) => a.value.localeCompare(b.value));
+    return teams.sort((a, b) => {
+      // Sort by display name if available, otherwise by value
+      const aName = (a as any).displayName || a.value;
+      const bName = (b as any).displayName || b.value;
+      return aName.localeCompare(bName);
+    });
   }
 
   private aggregatedDataByTimeFrame(hideWeekends: boolean) {

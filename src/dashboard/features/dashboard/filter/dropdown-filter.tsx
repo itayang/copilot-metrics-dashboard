@@ -88,7 +88,7 @@ export function DropdownFilter(props: DropdownFilterProps) {
                         )}
                       </div>
                       <span className="">
-                        <span> {option.value} </span>
+                        <span> {option.displayName || option.value} </span>
                       </span>
                     </CommandItem>
                   );
